@@ -21,6 +21,7 @@
   },
   "homepage": "https://github.com/coreyflynn/Voltron",
   "dependencies": {
-    "grunt": "^0.4.5"
+    "grunt": "^0.4.5",
+    "grunt-vulcanize": "^0.3.0"
   }
 }
