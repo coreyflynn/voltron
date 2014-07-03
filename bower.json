@@ -1,0 +1,25 @@
+{
+  "name": "Voltron",
+  "version": "0.0.1",
+  "homepage": "https://github.com/coreyflynn/Voltron",
+  "authors": [
+    "Corey Flynn <flynn.corey@gmail.com>"
+  ],
+  "description": "Custom Web Components",
+  "keywords": [
+    "Web",
+    "Components"
+  ],
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "barista": "git@github.com:cmap/barista.git#gh-pages"
+  }
+}
