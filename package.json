@@ -1,6 +1,6 @@
 {
   "name": "Voltron",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Custom Web Componenets by Corey Flynn",
   "main": "index.js",
   "scripts": {
