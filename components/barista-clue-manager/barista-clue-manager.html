@@ -5,7 +5,7 @@
 <link rel="import" href="../../bower_components/paper-input/paper-input.html">
 <link rel="import" href="../../bower_components/core-item/core-item.html">
 
-<polymer-element name="barista-clue-manager" noscript>
+<polymer-element name="barista-clue-manager" attributes="color panelColor termUrl" noscript>
       <template>
           <link rel="stylesheet" href="../../bower_components/barista/barista.main.min.css">
 
@@ -17,7 +17,7 @@
                     transition: height .3s;
                 }
                 .tall{
-                    height: 100px;
+                    height: 130px;
                     transition: height .3s;
                 }
                 paper-input{
@@ -25,13 +25,23 @@
                 }
                 #start{
                     top: 15px;
+                    color: #38A4DD;
+                }
+                #top{
+                    background-color: {{color}};
+                }
+                #bottom{
+                    background-color: {{panelColor}};
+                }
+                #term{
+                    color: #38A4DD;
                 }
           </style>
 
           <div class="row">
               <div id="top" class="col-xs-offset-1 col-xs-10">
                   <paper-ripple id="ripple" fit style="cursor:pointer"></paper-ripple>
-                  <paper-input class="col-xs-2" placeholder="NAME" floatingLabel="true"></paper-input>
+                  <paper-input class="pull-left" placeholder="NAME"></paper-input>
                   <paper-button id="start" class="pull-right start" label="start"></paper-button>
                   <paper-shadow z="1"></paper-shadow>
               </div>
@@ -42,34 +52,57 @@
                   <core-item class="col-xs-10">XX.XXX.XXX.XXX</core-item>
                   <core-item class="col-xs-2" label="SSH login"></core-item>
                   <core-item class="col-xs-10">ssh ubuntu@XX.XXX.XXX.XXX</core-item>
+                  <paper-button id="term" class="pull-right" label="Terminal"></paper-button>
+
               </div>
           </div>
       </template>
       <script src="../../bower_components/barista/barista.main.min.js"></script>
       <script charset="utf-8">
           Polymer('barista-clue-manager',{
+            color: "#e0e0e0",
+            panelColor: "#f5f5f5",
+            termUrl: "#",
             ready: function(){
                 var self = this;
+
+                // exand the bottom panel on click of the top panel
                 $(this.$.ripple).click(function(){
                     // $("#bottom").collapse().toggle();
                     $(self.$.bottom).toggleClass("tall");
                 });
 
+                // hide the terminal button by default
+                $(this.$.term).hide();
+
+                // link out to the desired terminal link when the terminal
+                // button is clicked
+                $(this.$.term).click(function(){
+                    window.location = self.termUrl;
+                })
+
+                // change the state of the start button
                 $(this.$.start).click(function(){
                     var label = $(this).attr("label");
-                    var self = this;
+                    var target = this;
                     console.log(label);
                     switch (label){
                     case "start":
-                        $(self).attr("label","initializing");
+                        $(target).attr("label","initializing");
+                        $(target).css("color","#F8981D");
                         setTimeout(function(){
-                            $(self).attr("label","stop");
+                            $(target).attr("label","stop");
+                            $(target).css("color","#E41F26");
+                            $(self.$.term).show();
                         },3000)
                         break;
                     case "stop":
-                        $(self).attr("label","destroying");
+                        $(target).attr("label","destroying");
+                        $(target).css("color","#F8981D");
                         setTimeout(function(){
-                            $(self).attr("label","start");
+                            $(target).attr("label","start");
+                            $(target).css("color","#38A4DD");
+                            $(self.$.term).hide();
                         },3000)
                         break;
                     }
