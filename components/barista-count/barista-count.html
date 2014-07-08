@@ -1,0 +1,35 @@
+<link rel="stylesheet" href="../../bower_components/barista/barista.main.min.css">
+<polymer-element name="barista-count" attributes="api search_field search_string distinct label fg_color">
+<template>
+    <div id="target"></div>
+</template>
+<script src="../../bower_components/barista/barista.main.min.js"></script>
+<script charset="utf-8">
+    Polymer("barista-count",{
+        api: "a2/siginfo",
+        search_field: "pert_iname",
+        distinct: false,
+        label: "number of signatures",
+        fg_color: "black",
+        search_string: "",
+
+        ready: function(){
+            this.model = new Barista.Models.GenericCountModel({url: "http://api.lincscloud.org/" + this.api , search_field: this.search_field, distinct: this.distinct});
+            var view = new Barista.Views.PertCountView({
+                el: $(this.$.target),
+                static_text: this.label,
+                fg_color: this.fg_color,
+                span_class: "col-xs-12",
+                model: this.model,
+                shadow_root: this.shadowRoot,
+                shadow_el: "#target"
+            });
+            this.model.fetch(this.search_string);
+        },
+
+        search_stringChanged: function(){
+            this.model.fetch(this.search_string);
+        },
+    });
+</script>
+</polymer-element>
