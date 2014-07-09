@@ -1,0 +1,30 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/core-toolbar/core-toolbar.html">
+<link rel="import" href="../../bower_components/core-icon-button/core-icon-button.html">
+<link rel="import" href="../../bower_components/core-icons/core-icons.html">
+
+<!-- fonts -->
+<link href='http://fonts.googleapis.com/css?family=Roboto+Slab' rel='stylesheet' type='text/css'>
+
+<polymer-element name="barista-toolbar" attributes="user">
+    <template >
+        <link rel="stylesheet" href="barista-toolbar.css">
+        <core-toolbar>
+            <!-- <core-icon-button icon="menu"></core-icon-button> -->
+            <p class="opaque">menu</p>
+            <a href="http://www.lincscloud.org/"><img src="http://coreyflynn.github.io/Bellhop/img/logos/linscloud_logo_RGB_small-cloud-web.png" alt="lincscloud logo" /></a>
+            <div flex></div>
+            <p class="opaque">{{user}}</p>
+            <p class="right-border">share result</p>
+            <p class="right-border">download/save results</p>
+            <p class="right-border">take snapshot</p>
+            <p>logout</p>
+            <content></content>
+        </core-toolbar>
+    </template>
+    <script charset="utf-8">
+        Polymer("barista-toolbar",{
+            user: ""
+        });
+    </script>
+</polymer-element>
