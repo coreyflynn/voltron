@@ -298,7 +298,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 -->
 
 <!--
-`paper-ripple` provides a visual effect that other quantum paper elements can
+`paper-ripple` provides a visual effect that other paper elements can
 use to simulate a rippling effect emanating from the point of contact.  The
 effect can be visualized as a concentric circle with motion.
 
@@ -317,7 +317,7 @@ Example:
     <paper-ripple id="ripple" style="pointer-events: none;"></paper-ripple>
     ...
     downAction: function(e) {
-      this.$.ripple.downActon({x: e.x, y: e.y});
+      this.$.ripple.downAction({x: e.x, y: e.y});
     },
     upAction: function(e) {
       this.$.ripple.upAction();
@@ -808,7 +808,7 @@ Example using icon `cherry` from custom iconset `fruit`:
 See [core-iconset](#core-iconset) and [core-iconset-svg](#core-iconset-svg) for more information about
 how to use a custom iconset.
 
-See [core-icons](#core-icons) for the default set of icons. To use the default set of icons you'll need to include an import for `core-icons.html`.
+See [core-icons](http://www.polymer-project.org/components/core-icons/demo.html) for the default set of icons. To use the default set of icons you'll need to include an import for `core-icons.html`.
 
 @group Polymer Core Elements
 @element core-icon
@@ -1041,8 +1041,8 @@ Example:
        * icons are arranged into separate rows inside the image.
        *
        * @attribute width
-       * @type string
-       * @default ''
+       * @type number
+       * @default 0
        */
       width: 0,
 
@@ -1208,6 +1208,7 @@ html /deep/ core-icon {
   display: inline-block;
   vertical-align: middle;
   background-repeat: no-repeat;
+  fill: currentcolor;
 }
 
 html /deep/ core-icon[size=""] {
@@ -1319,19 +1320,28 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 <!--
 /**
- * @module Quantum Paper Elements
- */
-/**
- * paper-focusable is a base class for Quantum Paper elements that can be
- * focused.
+ * @group Paper Elements
  *
- * @class paper-focusable
+ * paper-focusable is a base class for paper elements that can be focused.
+ *
+ * @element paper-focusable
+ * @status beta
+ * @homepage github.io
  */
 -->
 
 
 
-<polymer-element name="paper-focusable" attributes="active focused disabled isToggle" tabindex="0" on-down="{{_downAction}}" on-up="{{_upAction}}" on-focus="{{focusAction}}" on-blur="{{blurAction}}" assetpath="bower_components/paper-focusable/">
+<polymer-element name="paper-focusable" attributes="active focused disabled isToggle" tabindex="0" on-down="{{downAction}}" on-up="{{upAction}}" on-focus="{{focusAction}}" on-blur="{{blurAction}}" on-contextmenu="{{contextMenuAction}}" assetpath="bower_components/paper-focusable/">
+
+  <template>
+    <style>
+      :host([disabled]) {
+        pointer-events: none;
+      }
+    </style>
+    <content></content>
+  </template>
 
   <script>
     Polymer('paper-focusable', {
@@ -1398,13 +1408,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         }
       },
 
-      _downAction: function(e) {
-        if (this.disabled) {
-          return;
-        }
-        this.downAction(e);
-      },
-
       downAction: function() {
         this.pressed = true;
         this.focused = false;
@@ -1416,11 +1419,16 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         }
       },
 
-      _upAction: function(e) {
-        if (this.disabled) {
-          return;
-        }
+      // Pulling up the context menu for an item should focus it; but we need to
+      // be careful about how we deal with down/up events surrounding context
+      // menus. The up event typically does not fire until the context menu
+      // closes: so we focus immediately.
+      //
+      // This fires _after_ downAction.
+      contextMenuAction: function(e) {
+        // Note that upAction may fire _again_ on the actual up event.
         this.upAction(e);
+        this.focusAction();
       },
 
       upAction: function() {
@@ -1460,7 +1468,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 <!--
 The `paper-shadow` element is a helper to add shadows to elements.
-Quantum paper shadows are composed of two shadows on top of each other. We
+Paper shadows are composed of two shadows on top of each other. We
 mimic this effect by using two elements on top of each other, each with a
 different drop shadow. You can apply the shadow to an element by assigning
 it as the target. If you do not specify a target, the shadow is applied to
@@ -1515,6 +1523,7 @@ root if there is one. This implies:
   bottom: 0;
   right: 0;
   border-radius: inherit;
+  pointer-events: none;
 }
 
 .paper-shadow-animated.paper-shadow {
@@ -1790,6 +1799,7 @@ root if there is one. This implies:
   overflow: hidden;
 }
 
+/*
 #focusBg {
   position: absolute;
   top: 0;
@@ -1827,6 +1837,7 @@ root if there is one. This implies:
     opacity: 0;
   }
 }
+*/
 
 #ripple {
   position: absolute;
@@ -1868,7 +1879,7 @@ root if there is one. This implies:
     </template>
 
     <div id="clip">
-      <div id="focusBg"></div>
+      <!-- <div id="focusBg"></div> -->
       <paper-ripple id="ripple"></paper-ripple>
       <div id="content">
         <template if="{{iconSrc || icon}}">
@@ -1932,7 +1943,7 @@ root if there is one. This implies:
       z: 1,
 
       attached: function() {
-        if (this.textContent) {
+        if (this.textContent && !this.textContent.match(/\s+/)) {
           console.warn('Using textContent to label the button is deprecated. Use the "label" property instead');
           this.label = this.textContent;
         }
@@ -2082,33 +2093,41 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
  * @element core-input
  * @homepage github.io
  */
+-->
 
-/**
- * Fired when the inputValue of is changed. This is the same event as the DOM
- * "input" event.
- *
- * @event input
- */
+<!--
+Fired when the inputValue of is changed. This is the same event as the DOM
+"input" event.
 
-/**
- * Fired when the user commits the value of the input, either by the hitting the
- * `enter` key or blurring the input after the changing the inputValue. Also see the
- * DOM "change" event.
- *
- * @event change
- */
+@event input
+-->
 
-/**
- * Fired when the inputValue of this text input changes and fails validation.
- *
- * @event input-invalid
- * @param {Object} detail
- * @param {string} value The text input's inputValue.
- */
+<!--
+Fired when the user commits the value of the input, either by the hitting the
+`enter` key or blurring the input after the changing the inputValue. Also see the
+DOM "change" event.
+
+@event change
+-->
+
+<!--
+Fired when the inputValue of this text input changes and fails validation.
+
+@event input-invalid
+@param {Object} detail
+@param {string} value The text input's inputValue.
+-->
+
+<!--
+Fired when the inputValue of this text input changes and passes validation.
+
+@event input-valid
+@param {Object} detail
+@param {string} value The text input's inputValue.
 -->
 
 
-<polymer-element name="core-input" attributes="value inputValue placeholder disabled multiline rows validate invalid" assetpath="bower_components/core-input/">
+<polymer-element name="core-input" assetpath="bower_components/core-input/">
 
   <template>
 
@@ -2149,11 +2168,11 @@ textarea[fit] {
 }</style>
 
     <template if="{{multiline}}">
-      <textarea id="input" value="{{inputValue}}" rows="{{rows}}" fit?="{{rows === &apos;fit&apos;}}" disabled?="{{disabled}}" placeholder="{{placeholder}}" aria-labelledby="placeholder" aria-invalid="{{invalid}}" on-change="{{inputChangeAction}}" on-focus="{{focusAction}}" on-blur="{{blurAction}}"></textarea>
+      <textarea id="input" value="{{inputValue}}" rows="{{rows}}" fit?="{{rows === &apos;fit&apos;}}" disabled?="{{disabled}}" placeholder="{{placeholder}}" required?="{{required}}" readonly?="{{readonly}}" aria-label="{{label || placeholder}}" aria-invalid="{{invalid}}" on-change="{{inputChangeAction}}" on-focus="{{focusAction}}" on-blur="{{blurAction}}"></textarea>
     </template>
 
     <template if="{{!multiline}}">
-      <input id="input" value="{{inputValue}}" disabled?="{{disabled}}" placeholder="{{placeholder}}" aria-labelledby="placeholder" aria-invalid="{{invalid}}" on-change="{{inputChangeAction}}" on-focus="{{focusAction}}" on-blur="{{blurAction}}">
+      <input id="input" value="{{inputValue}}" disabled?="{{disabled}}" type="{{type}}" placeholder="{{placeholder}}" required?="{{required}}" readonly?="{{readonly}}" aria-label="{{label || placeholder}}" aria-invalid="{{invalid}}" on-change="{{inputChangeAction}}" on-focus="{{focusAction}}" on-blur="{{blurAction}}">
     </template>
 
   </template>
@@ -2161,118 +2180,156 @@ textarea[fit] {
   <script>
 
     Polymer('core-input', {
+      publish: {
+        /**
+         * Placeholder text that hints to the user what can be entered in
+         * the input.
+         *
+         * @attribute placeholder
+         * @type string
+         * @default ''
+         */
+        placeholder: '',
+  
+        /**
+         * If true, this input cannot be focused and the user cannot change
+         * its value.
+         *
+         * @attribute disabled
+         * @type boolean
+         * @default false
+         */
+        disabled: false,
+  
+        /**
+         * Set the input type. Not supported for `multiline`.
+         *
+         * @attribute type
+         * @type string
+         * @default text
+         */
+        type: 'text',
 
-      /**
-       * Placeholder text that hints to the user what can be entered in
-       * the input.
-       *
-       * @attribute placeholder
-       * @type string
-       * @default ''
-       */
-      placeholder: '',
+        /**
+         * If true, the user cannot modify the value of the input.
+         *
+         * @attribute readonly
+         * @type boolean
+         * @default false
+         */
+        readonly: false,
 
-      /**
-       * If true, this input cannot be focused and the user cannot change
-       * its value.
-       *
-       * @attribute disabled
-       * @type boolean
-       * @default false
-       */
-      disabled: false,
-
-      /**
-       * If true, this input accepts multi-line input like a `<textarea>`
-       *
-       * @attribute multiline
-       * @type boolean
-       * @default false
-       */
-      multiline: false,
-
-      /**
-       * (multiline only) The height of this text input in rows. The input
-       * will scroll internally if more input is entered beyond the size
-       * of the component. This property is meaningless if multiline is
-       * false. You can also set this property to "fit" and size the
-       * component with CSS to make the input fit the CSS size.
-       *
-       * @attribute rows
-       * @type number|'fit'
-       * @default 'fit'
-       */
-      rows: 'fit',
-
-      /**
-       * The current value of this input.
-       *
-       * @attribute inputValue
-       * @type string
-       * @default ''
-       */
-      inputValue: '',
-
-      /**
-       * The value of the input committed by the user, either by changing the
-       * inputValue and blurring the input, or by hitting the `enter` key.
-       *
-       * @attribute value
-       * @type string
-       * @default ''
-       */
-      value: '',
-
-      /**
-       * If this property is not null, the text input's inputValue will be
-       * validated. You can validate the value with either a regular expression
-       * or a custom function.
-       *
-       * To use a regular expression, set this property to a RegExp object or
-       * a string containing the regular expression to match against. To use a
-       * custom validator, set this property to a function with the signature
-       * function(value) that returns a boolean. The input is valid if the
-       * function returns true.
-       *
-       * Example:
-       *
-       *     // valid only if the value is a number
-       *     <core-input validate="^[0-9]*$"></core-input> 
-       * 
-       *     // valid only if the value is a number
-       *     this.$.input.validate = /^[0-9]*$/;
-       *
-       *     this.$.input2.validate = function(value) {
-       *         // valid only if the value is 'foo'
-       *         return value === 'foo';  
-       *     }
-       *
-       * @attribute validate
-       * @type string|RegExp|Function(value)
-       * @default null
-       */
-      validate: null,
-
-      /**
-       * If this property is true, the text input's inputValue failed validation.
-       *
-       * @attribute invalid
-       * @type boolean
-       * @default false
-       */
-      invalid: false,
-
+        /**
+         * If true, the input is invalid until the value becomes non-null.
+         *
+         * @attribute required
+         * @type boolean
+         * @default false
+         */
+        required: false,
+        
+        /**
+         * If true, this input accepts multi-line input like a `<textarea>`
+         *
+         * @attribute multiline
+         * @type boolean
+         * @default false
+         */
+        multiline: false,
+  
+        /**
+         * (multiline only) The height of this text input in rows. The input
+         * will scroll internally if more input is entered beyond the size
+         * of the component. This property is meaningless if multiline is
+         * false. You can also set this property to "fit" and size the
+         * component with CSS to make the input fit the CSS size.
+         *
+         * @attribute rows
+         * @type number|'fit'
+         * @default 'fit'
+         */
+        rows: 'fit',
+  
+        /**
+         * The current value of this input. Changing inputValue programmatically
+         * will cause value to be out of sync. Instead, change value directly
+         * or call commit() after changing inputValue.
+         *
+         * @attribute inputValue
+         * @type string
+         * @default ''
+         */
+        inputValue: '',
+  
+        /**
+         * The value of the input committed by the user, either by changing the
+         * inputValue and blurring the input, or by hitting the `enter` key.
+         *
+         * @attribute value
+         * @type string
+         * @default ''
+         */
+        value: '',
+  
+        /**
+         * If this property is not null, the text input's inputValue will be
+         * validated. You can validate the value with either a regular expression
+         * or a custom function.
+         *
+         * To use a regular expression, set this property to a RegExp object or
+         * a string containing the regular expression to match against. To use a
+         * custom validator, set this property to a function with the signature
+         * function(value) that returns a boolean. The input is valid if the
+         * function returns true.
+         *
+         * Example:
+         *
+         *     // valid only if the value is a number
+         *     <core-input validate="^[0-9]*$"></core-input> 
+         * 
+         *     // valid only if the value is a number
+         *     this.$.input.validate = /^[0-9]*$/;
+         *
+         *     this.$.input2.validate = function(value) {
+         *         // valid only if the value is 'foo'
+         *         return value === 'foo';  
+         *     }
+         *
+         * @attribute validate
+         * @type string|RegExp|Function(value)
+         * @default null
+         */
+        validate: null,
+  
+        /**
+         * If this property is true, the text input's inputValue failed validation.
+         *
+         * @attribute invalid
+         * @type boolean
+         * @default false
+         */
+        invalid: false,
+      },
+      
       validateValue: function() {
         var valid = true;
-        if (!this.inputValue) {
-          valid = true;
-        } else if (typeof this.validate === 'string') {
-          valid = new RegExp(this.validate).exec(this.inputValue);
-        } else if (this.validate.exec) {
-          valid = this.validate.exec(this.inputValue);
-        } else if (this.validate instanceof Function) {
-          valid = this.validate.call(this.inputValue);
+
+        if (this.validate) {
+
+          if (!this.inputValue) {
+            valid = !this.required;
+          } else if (typeof this.validate === 'string') {
+            valid = new RegExp(this.validate).exec(this.inputValue);
+          } else if (this.validate.exec) {
+            valid = this.validate.exec(this.inputValue);
+          } else if (this.validate instanceof Function) {
+            valid = this.validate.call(this, this.inputValue);
+          }
+
+        } else if (this.required) {
+          valid = !!this.inputValue;
         }
+
         this.invalid = !valid;
       },
 
@@ -2280,16 +2337,14 @@ textarea[fit] {
         this.classList.toggle('invalid', this.invalid);
         if (this.invalid) {
           this.fire('input-invalid', {value: this.inputValue});
+        } else {
+          this.fire('input-valid', {value: this.inputValue});
         }
       },
 
       inputValueChanged: function() {
-        if (this.validate) {
+        if (this.validate || this.required) {
           this.validateValue();
-        }
-
-        if (!this.inputValue) {
-          this.value = '';
         }
       },
 
@@ -2297,8 +2352,21 @@ textarea[fit] {
         this.inputValue = this.value;
       },
 
+      requiredChanged: function() {
+        this.validateValue();
+      },
+
+      /**
+       * Commits the inputValue to value.
+       *
+       * @method commit
+       */
+      commit: function() {
+         this.value = this.inputValue;
+      },
+
       inputChangeAction: function() {
-        this.value = this.inputValue;
+        this.commit();
         if (!window.ShadowDOMPolyfill) {
           // re-fire non-bubbling event
           this.fire('change', null, this, false);
@@ -2418,7 +2486,8 @@ textarea[fit] {
 }
 #label.animating {
   /* TODO: transforms are unprefixed in M36/ Remove when stable. */
-  transition: -webkit-transform 0.3s cubic-bezier(0.2, 0, 0.03, 1);
+  -webkit-transition: -webkit-transform 0.3s cubic-bezier(0.2, 0, 0.03, 1);
+  transition: transform 0.3s cubic-bezier(0.2, 0, 0.03, 1);
 }
 
 #labelSpan {
@@ -2476,6 +2545,7 @@ textarea[fit] {
 }
 
 :host([multiline]) #underlineContainer.animating {
+  -webkit-transition: top 0.2s ease-in;
   transition: top 0.2s ease-in;
 }
 
@@ -2504,11 +2574,13 @@ textarea[fit] {
   -webkit-transform: scale(0.1,2);
   transform: scale(0.1,2);
   /* TODO: transforms are unprefixed in M36/ Remove when stable. */
-  transition: -webkit-transform 0.1s cubic-bezier(0.2, 0, 0.03, 1);
+  -webkit-transition: -webkit-transform 0.1s cubic-bezier(0.2, 0, 0.03, 1);
+  transition: transform 0.3s cubic-bezier(0.2, 0, 0.03, 1);
 }
 #underlineHighlight.animating {
   /* TODO: transforms are unprefixed in M36/ Remove when stable. */
-  transition: -webkit-transform 0.3s cubic-bezier(0.2, 0, 0.03, 1);
+  -webkit-transition: -webkit-transform 0.3s cubic-bezier(0.2, 0, 0.03, 1);
+  transition: transform 0.3s cubic-bezier(0.2, 0, 0.03, 1);
 }
 #underlineHighlight.focused {
   -webkit-transform: scale(1);
@@ -2531,7 +2603,8 @@ textarea[fit] {
 #caret.animating {
   display: block;
    /* TODO: transforms are unprefixed in M36/ Remove when stable. */
-  transition: -webkit-transform 0.2s ease-out, opacity 0.2s ease-out;
+  -webkit-transition: -webkit-transform 0.2s ease-out, opacity 0.2s ease-out;
+  transition: transform 0.3s cubic-bezier(0.2, 0, 0.03, 1);
 }
 #caret.focused {
   display: block;
@@ -2548,7 +2621,7 @@ textarea[fit] {
 }
 </style>
 
-    <div id="floatedLabel" class="hidden"><span id="floatedLabelSpan">{{label}}</span></div>
+    <div id="floatedLabel" class="hidden" hidden?="{{!floatingLabel}}"><span id="floatedLabelSpan">{{label}}</span></div>
 
     <div id="container" on-transitionend="{{transitionEndAction}}" on-webkittransitionend="{{transitionEndAction}}">
 
@@ -2732,6 +2805,7 @@ textarea[fit] {
           this.$.label.classList.add('animating');
           this.async(function() {
             this.$.label.style.webkitTransform = 'none';
+            this.$.label.style.transform = 'none';
           });
         }
         this.focused = false;
@@ -2750,6 +2824,7 @@ textarea[fit] {
         var rect = this.$.underline.getBoundingClientRect();
         var right = e.x - rect.left;
         this.$.underlineHighlight.style.webkitTransformOriginX = right + 'px';
+        this.$.underlineHighlight.style.transformOriginX = right + 'px';
         this.$.underlineHighlight.classList.remove('focused');
         this.underlineAsync = this.async(function() {
           this.$.underlineHighlight.classList.add('pressed');
@@ -2808,6 +2883,7 @@ textarea[fit] {
           this.$.label.classList.add('focusedColor');
           this.$.label.classList.add('animating');
           this.$.label.style.webkitTransform = this.$.label.cachedTransform;
+          this.$.label.style.transform = this.$.label.cachedTransform;
         }
       },
 
@@ -2899,7 +2975,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 html /deep/ core-item {
   display: block;
   position: relative;
-  height: 40px;
+  min-height: 40px;
   white-space: nowrap;
 }
 
@@ -2920,10 +2996,10 @@ html /deep/ core-item::shadow ::content > a {
 }
 </style>
 
-<polymer-element name="core-item" attributes="label icon src" horizontal="" center="" layout="" assetpath="bower_components/core-item/">
+<polymer-element name="core-item" attributes="label icon src size" horizontal="" center="" layout="" assetpath="bower_components/core-item/">
 <template>
 
-  <core-icon src="{{src}}" icon="{{icon}}" hidden?="{{!src &amp;&amp; !icon}}"></core-icon>{{label}}<content></content>
+  <core-icon src="{{src}}" icon="{{icon}}" size="{{size}}" hidden?="{{!src &amp;&amp; !icon}}"></core-icon>{{label}}<content></content>
   
 </template>
 <script>
@@ -2952,6 +3028,14 @@ html /deep/ core-item::shadow ::content > a {
      * @attribute label
      * @type string
      * @default ''
+     */
+
+    /**
+     * Specifies the size of the icon in pixel units.
+     *
+     * @attribute size
+     * @type number
+     * @default 24
      */
 
   });
@@ -3131,14 +3215,14 @@ label, navigation, search and actions.
       <core-icon-button icon="more" on-tap="{{moreAction}}"></core-icon-button>
     </core-toolbar>
 
-`core-toolbar` has a standard height, but can be taller by setting `tall`
-class on the `core-toolbar`.  The will make the toolbar 3x the normal height.
+`core-toolbar` has a standard height, but can made be taller by setting `tall`
+class on the `core-toolbar`.  This will make the toolbar 3x the normal height.
 
     <core-toolbar class="tall">
       <core-icon-button icon="menu"></core-icon-button>
     </core-toolbar>
     
-Apply `medium-tall` class to make the toolbar medium tall.  The will make the 
+Apply `medium-tall` class to make the toolbar medium tall.  This will make the 
 toolbar 2x the normal height.
 
     <core-toolbar class="medium-tall">
@@ -3153,7 +3237,7 @@ When taller, elements can pin to either the top (default), middle or bottom.
       <div class="bottom indent">Bottom Title</div>
     </core-toolbar>
     
-To make an element completely fits at the bottom of the toolbar, use `fit` along
+To make an element completely fit at the bottom of the toolbar, use `fit` along
 with `bottom`.
 
     <core-toolbar class="tall">
@@ -3189,6 +3273,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   height: 64px;
   /* typography */
   font-size: 1.3em;
+  /* background */
+  background-color: #CFD8DC;
 }
 
 :host(.animate) {
@@ -3335,7 +3421,6 @@ how to use a custom icon set.
 
 @group Polymer Core Elements
 @element core-icon-button
-@extends core-theme-aware
 @homepage github.io
 -->
 
@@ -3442,6 +3527,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         var icon = this.iconById(id);
         if (icon) {
           var content = icon.cloneNode(true);
+          content.removeAttribute('id');
           var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
           svg.setAttribute('viewBox', '0 0 ' + this.iconSize + ' ' +
               this.iconSize);
